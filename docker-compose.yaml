@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  server:
+    build: ./Server
+    image: food-ordering-server
+    ports:
+      - "5000:80"
+    depends_on:
+      - backend
+    networks:
+      - api
+  backend:
+    build: ./Backend
+    image: food-ordering-backend
+    ports:
+      - "5001:80"
+    depends_on:
+      - rabbit
+    networks:
+      - api
+  rabbit:
+    restart: on-failure
+    image: rabbitmq:management
+    volumes:
+    - rabbit-data:/var/lib/rabbitmq
+    networks:
+      - api
+  db:
+    image: postgres
+    restart: on-failure
+    volumes:
+    - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: dbpassword
+    ports:
+    - "5432:5432"
+    networks:
+      - api
+
+networks:
+  api:
+    driver: bridge
+
+volumes:
+  rabbit-data:
+  db-data:
