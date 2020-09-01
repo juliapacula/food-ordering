@@ -1,7 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend
+namespace DatabaseStructure
 {
     public class DatabaseContext : DbContext
     {

@@ -1,12 +1,20 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 
 namespace Backend
 {
-    public class QueueHandler
+    public class QueueHandler : IHostedService
     {
-        public void Run()
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Hello there!");
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 }
