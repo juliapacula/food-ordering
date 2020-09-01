@@ -2,7 +2,9 @@ version: "3"
 
 services:
   server:
-    build: ./Server
+    build:
+      context: .
+      dockerfile: ./Server/Dockerfile
     image: food-ordering-server
     ports:
       - "5000:80"
@@ -13,10 +15,24 @@ services:
     networks:
       - api
   backend:
-    build: ./Backend
+    build:
+      context: .
+      dockerfile: ./Backend/Dockerfile
     image: food-ordering-backend
     ports:
       - "5001:80"
+    environment:
+      - DOTNET_ENVIRONMENT="Production"
+    depends_on:
+      - rabbit
+      - dbmigrator
+    networks:
+      - api
+  dbmigrator:
+    build:
+      context: .
+      dockerfile: ./Migrator/Dockerfile
+    image: food-ordering-migrator
     environment:
       - DOTNET_ENVIRONMENT="Production"
     depends_on:

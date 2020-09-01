@@ -3,34 +3,46 @@ version: "3"
 services:
   server:
     build:
-      context: ./Server
-      dockerfile: Dockerfile.local
+      context: .
+      dockerfile: ./Server/Dockerfile.local
     image: food-ordering-server-local
     depends_on:
       - backend
   backend:
     build:
-      context: ./Backend
-      dockerfile: Dockerfile.local
+      context: .
+      dockerfile: ./Backend/Dockerfile.local
     image: food-ordering-backend-local
     depends_on:
       - rabbit
+  dbmigrator:
+    build:
+      context: .
+      dockerfile: ./Migrator/Dockerfile.local
+    image: food-ordering-migrator
+    environment:
+      - DOTNET_ENVIRONMENT="Production"
+    depends_on:
+      - rabbit
+      - db
+    networks:
+      - api
   rabbit:
     restart: on-failure
     image: rabbitmq:management
     volumes:
-    - rabbit-data:/var/lib/rabbitmq
+      - rabbit-data:/var/lib/rabbitmq
     networks:
       - api
   db:
     image: postgres
     restart: on-failure
     volumes:
-    - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: dbpassword
     ports:
-    - "5432:5432"
+      - "5432:5432"
     networks:
       - api
 

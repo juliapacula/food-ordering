@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Backend
+namespace Migrator
 {
     class Program
     {
@@ -26,7 +26,7 @@ namespace Backend
                     options.UseNpgsql(configuration.GetConnectionString("Postgres")),
                 ServiceLifetime.Singleton);
 
-            serviceCollection.AddHostedService<QueueHandler>();
+            serviceCollection.AddSingleton<IHostedService, Migrator>();
         }
     }
 }
