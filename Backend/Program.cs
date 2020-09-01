@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,38 +8,24 @@ namespace Backend
 {
     class Program
     {
-        public static IConfigurationRoot configuration;
-
-        public static void Main()
+        public static void Main(string[] args)
         {
-            CreateHostBuilder().Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
-        private static IHostBuilder CreateHostBuilder()
+        private static IHostBuilder CreateHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder()
-                .ConfigureServices((context, collection) =>
-                {
-                    CreateConfiguration();
-                    ConfigureServices(collection);
-                });
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureServices((context, collection) => { ConfigureServices(collection, context.Configuration); });
         }
 
-        private static void CreateConfiguration()
+        private static void ConfigureServices(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .Build();
-        }
+            serviceCollection.AddDbContext<DatabaseContext>(options =>
+                    options.UseNpgsql(configuration.GetConnectionString("Postgres")),
+                ServiceLifetime.Singleton);
 
-        private static void ConfigureServices(IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton(configuration);
-            serviceCollection.AddEntityFrameworkNpgsql()
-                .AddDbContext<DatabaseContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("Postgres")));
-            serviceCollection.AddTransient<QueueHandler>();
+            serviceCollection.AddSingleton<IHostedService, Migrator>();
         }
     }
 }

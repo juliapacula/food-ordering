@@ -9,6 +9,12 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="appsettings.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.Production.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -16,13 +22,17 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         <PrivateAssets>all</PrivateAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.7" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.7" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.7" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.7" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.7" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Properties\launchSettings.json">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

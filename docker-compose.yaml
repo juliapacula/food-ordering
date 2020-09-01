@@ -6,6 +6,8 @@ services:
     image: food-ordering-server
     ports:
       - "5000:80"
+    environment:
+      - ASPNET_ENVIRONMENT="Production"
     depends_on:
       - backend
     networks:
@@ -15,8 +17,11 @@ services:
     image: food-ordering-backend
     ports:
       - "5001:80"
+    environment:
+      - DOTNET_ENVIRONMENT="Production"
     depends_on:
       - rabbit
+      - db
     networks:
       - api
   rabbit:

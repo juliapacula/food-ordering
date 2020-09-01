@@ -3,13 +3,15 @@ version: "3"
 services:
   server:
     build:
-      - dockerfile:  ./Server/Dockerfile.local
+      context: ./Server
+      dockerfile: Dockerfile.local
     image: food-ordering-server-local
     depends_on:
       - backend
   backend:
     build:
-      - dockerfile:  ./Backend/Dockerfile.local
+      context: ./Backend
+      dockerfile: Dockerfile.local
     image: food-ordering-backend-local
     depends_on:
       - rabbit
