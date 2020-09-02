@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Backend.Messages;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
@@ -40,7 +39,8 @@ namespace Backend.QueueUtils
 
         private void OnReply(object sender, BasicDeliverEventArgs args)
         {
-            // reply
+            var type = GetMessageType(args);
+            // todo
         }
 
         #endregion

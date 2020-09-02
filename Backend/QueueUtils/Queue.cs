@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Backend.Messages;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Backend.QueueUtils
 {
@@ -63,6 +64,11 @@ namespace Backend.QueueUtils
             props.CorrelationId = correlationId;
 
             return props;
+        }
+
+        protected MessageType GetMessageType(BasicDeliverEventArgs args)
+        {
+            return args.BasicProperties.Headers.TryGetValue("Type", out var obj) ? (MessageType)obj : default;
         }
 
         #endregion

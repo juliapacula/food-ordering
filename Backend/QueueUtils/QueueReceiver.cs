@@ -25,24 +25,36 @@ namespace Backend.QueueUtils
 
         private void ReceiveMessage(object model, BasicDeliverEventArgs args)
         {
-            var type = args.BasicProperties.Headers.TryGetValue("Type", out var obj) ? (MessageType)obj : default;
-            var success = false;
+            var type = GetMessageType(args);
+            bool success;
 
             switch (type)
             {
                 case MessageType.AddToCart:
                     success = HandleAddToCartMessage(Message.Parse<AddToCart>(args.Body));
                     break;
+                
+                // todo
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            var props = CreateBasicProperties(success ? MessageType.S_OK : MessageType.Error, args.BasicProperties.CorrelationId);
+            Reply(success, args.BasicProperties);
+        }
+
+        private void Reply(bool success, IBasicProperties originalMessageProperties)
+        {
+            var props = CreateBasicProperties(success ? MessageType.S_OK : MessageType.Error, originalMessageProperties.CorrelationId);
             var responseBytes = Encoding.UTF8.GetBytes("some response");
 
-            channel.BasicPublish(string.Empty, args.BasicProperties.ReplyTo, props, responseBytes);
+            channel.BasicPublish(string.Empty, originalMessageProperties.ReplyTo, props, responseBytes);
             channel.TxCommit();
         }
+
+        #endregion
+
+        #region Handlers
 
         private bool HandleAddToCartMessage(AddToCart msg)
         {
