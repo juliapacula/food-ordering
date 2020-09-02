@@ -23,7 +23,8 @@ namespace Migrator
         private static void ConfigureServices(IServiceCollection serviceCollection, IConfiguration configuration)
         {
             serviceCollection.AddDbContext<DatabaseContext>(options =>
-                    options.UseNpgsql(configuration.GetConnectionString("Postgres")),
+                    options.UseNpgsql(configuration.GetConnectionString("Postgres"),
+                        b => b.MigrationsAssembly("Migrator")),
                 ServiceLifetime.Singleton);
 
             serviceCollection.AddSingleton<IHostedService, Migrator>();

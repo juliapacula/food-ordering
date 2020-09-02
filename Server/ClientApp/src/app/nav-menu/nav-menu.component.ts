@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { CartState } from '../shared/services/cart.state';
 
 @Component({
     selector: 'app-nav-menu',
@@ -6,13 +7,15 @@ import { Component } from '@angular/core';
     styleUrls: ['./nav-menu.component.css'],
 })
 export class NavMenuComponent {
-    public isExpanded: boolean = false;
+    constructor(
+        private _cartState: CartState,
+    ) {}
 
-    public collapse(): void {
-        this.isExpanded = false;
+    public get cartSize(): number {
+        return this._cartState.size;
     }
 
-    public toggle(): void {
-        this.isExpanded = !this.isExpanded;
+    public get isCartEmpty(): boolean {
+        return this._cartState.size === 0;
     }
 }

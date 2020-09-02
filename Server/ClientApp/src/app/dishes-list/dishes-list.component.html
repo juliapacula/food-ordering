@@ -1,0 +1,27 @@
+<div class="row">
+  <div
+    *ngFor="let dish of dishes$ | async"
+    class="col-4 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ dish.name }}</h5>
+        <p class="card-text flex-grow-1">{{ dish.description }}</p>
+        <button
+          *ngIf="isAddedToCart(dish); else addButton"
+          (click)="removeDishFromCart(dish)"
+          class="btn btn-primary"
+          type="button">
+          <span class="mdi mdi-cart-remove"></span>
+        </button>
+        <ng-template #addButton>
+          <button
+            (click)="addDishToCart(dish)"
+            class="btn btn-primary"
+            type="button">
+            <span class="mdi mdi-cart-plus"></span>
+          </button>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
