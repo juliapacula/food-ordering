@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using Backend.Messages;
+using DatabaseStructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -30,8 +33,8 @@ namespace Backend.QueueUtils
 
             switch (type)
             {
-                case MessageType.AddToCart:
-                    success = HandleAddToCartMessage(Message.Parse<AddToCart>(args.Body));
+                case MessageType.FinalizeOrder:
+                    success = HandleFinalizeOrderMessage(Message.Parse<FinalizeOrder>(args.Body));
                     break;
                 
                 // todo
@@ -56,10 +59,14 @@ namespace Backend.QueueUtils
 
         #region Handlers
 
-        private bool HandleAddToCartMessage(AddToCart msg)
+        private bool HandleFinalizeOrderMessage(FinalizeOrder msg)
         {
-            Console.WriteLine(msg.OrderId);
-            // todo
+            using var db = new DatabaseContext();
+
+            var query = db.Dishes.Select(d => d.Price > 1);
+
+            Console.WriteLine(query);
+
             return true;
         }
 

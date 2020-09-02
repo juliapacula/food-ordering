@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DatabaseStructure;
 
 namespace Backend.Messages
 {
