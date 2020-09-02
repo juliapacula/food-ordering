@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DatabaseStructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Migrator.Seeders;
 
 namespace Migrator
 {
@@ -25,6 +26,7 @@ namespace Migrator
         {
             await _databaseContext.Database.EnsureCreatedAsync(cancellationToken);
             await _databaseContext.Database.MigrateAsync(cancellationToken);
+            await _databaseContext.SeedDishesAsync(cancellationToken);
             
             _applicationLifetime.StopApplication();
         }
