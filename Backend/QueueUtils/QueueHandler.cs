@@ -15,7 +15,7 @@ namespace Backend.QueueUtils
     {
         #region Fields
 
-        private readonly string queueName;
+        private readonly RabbitConfig rabbitConfig;
         private IConnection connection;
         private IModel channel;
 
@@ -23,10 +23,10 @@ namespace Backend.QueueUtils
 
         #region Constructor
 
-        public QueueHandler(IConfiguration configuration)
+        public QueueHandler(IConfiguration _appSettings, RabbitConfig _rabbitConfig)
         {
-            queueName = "food_ordering";
-            InitRabbitMQ(configuration.GetSection("RabbitMq"));
+            rabbitConfig = _rabbitConfig;
+            InitRabbitMQ(_appSettings.GetSection("RabbitMq"));
         }
 
         #endregion
@@ -46,7 +46,7 @@ namespace Backend.QueueUtils
 
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += HandleMessage;
-            channel.BasicConsume(queueName, false, consumer);
+            channel.BasicConsume(rabbitConfig.QueueName, false, consumer);
 
             return Task.CompletedTask;
         }
@@ -55,27 +55,23 @@ namespace Backend.QueueUtils
 
         #region Methods
 
-        private void InitRabbitMQ(IConfiguration rabbitConf)
+        private void InitRabbitMQ(IConfiguration rabbitAppSettings)
         {
             var factory = new ConnectionFactory
             {
-                UserName = rabbitConf["Username"],
-                Password = rabbitConf["Password"],
-                HostName = rabbitConf["ServerAddress"],
+                UserName = rabbitAppSettings["Username"],
+                Password = rabbitAppSettings["Password"],
+                HostName = rabbitAppSettings["ServerAddress"],
                 VirtualHost = "/"
             };
 
-            // create connection  
             connection = factory.CreateConnection();
-
-            // create channel  
             channel = connection.CreateModel();
 
-            channel.QueueDeclare(queueName, exclusive: false, autoDelete: false);
+            channel.QueueDeclare(rabbitConfig.QueueName, exclusive: false, autoDelete: false);
             channel.TxSelect();
             channel.BasicQos(0, 1, false);
         }
-
 
         private void HandleMessage(object sender, BasicDeliverEventArgs args)
         {

@@ -30,7 +30,19 @@ namespace Backend
 
             //var q = new QueueReceiver("food-ordering", configuration.GetSection("RabbitMq"));
 
+            serviceCollection.AddSingleton(new RabbitConfig("food_ordering"));
             serviceCollection.AddHostedService<QueueHandler>();
         }
     }
+
+    public class RabbitConfig
+    {
+        public string QueueName { get; }
+
+        public RabbitConfig(string _queueName)
+        {
+            QueueName = _queueName;
+        }
+    }
+
 }
