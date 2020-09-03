@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using DatabaseStructure;
 using Backend.QueueUtils;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ namespace Backend
                     options.UseNpgsql(configuration.GetConnectionString("Postgres")),
                 ServiceLifetime.Singleton);
 
-            var q = new QueueReceiver("food-ordering", configuration.GetSection("RabbitMq"));
+            //var q = new QueueReceiver("food-ordering", configuration.GetSection("RabbitMq"));
 
             serviceCollection.AddHostedService<QueueHandler>();
         }

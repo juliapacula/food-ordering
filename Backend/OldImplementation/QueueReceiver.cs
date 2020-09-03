@@ -61,11 +61,9 @@ namespace Backend.QueueUtils
 
         private bool HandleFinalizeOrderMessage(FinalizeOrder msg)
         {
-            using var db = new DatabaseContext();
+            //var query = db.Dishes.Select(d => d.Price > 1);
 
-            var query = db.Dishes.Select(d => d.Price > 1);
-
-            Console.WriteLine(query);
+            //Console.WriteLine(query);
 
             return true;
         }
