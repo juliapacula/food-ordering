@@ -1,6 +1,6 @@
 using System;
 
-namespace DatabaseStructure
+namespace DatabaseStructure.EntitySets
 {
     public class Dish
     {

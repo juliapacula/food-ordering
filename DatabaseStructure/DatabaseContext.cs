@@ -1,7 +1,5 @@
-using System.IO;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
+using DatabaseStructure.EntitySets;
 
 namespace DatabaseStructure
 {

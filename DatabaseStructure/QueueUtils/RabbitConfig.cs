@@ -1,4 +1,4 @@
-﻿namespace Backend.QueueUtils
+﻿namespace DatabaseStructure.QueueUtils
 {
     public class RabbitConfig
     {

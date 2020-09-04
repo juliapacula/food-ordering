@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using DatabaseStructure;
-using Backend.QueueUtils;
+using DatabaseStructure.QueueUtils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,21 +28,8 @@ namespace Backend
                     options.UseNpgsql(configuration.GetConnectionString("Postgres")),
                 ServiceLifetime.Singleton);
 
-            //var q = new QueueReceiver("food-ordering", configuration.GetSection("RabbitMq"));
-
             serviceCollection.AddSingleton(new RabbitConfig("food_ordering"));
             serviceCollection.AddHostedService<QueueHandler>();
         }
     }
-
-    public class RabbitConfig
-    {
-        public string QueueName { get; }
-
-        public RabbitConfig(string _queueName)
-        {
-            QueueName = _queueName;
-        }
-    }
-
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DatabaseStructure;
+using DatabaseStructure.EntitySets;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Server.Controllers

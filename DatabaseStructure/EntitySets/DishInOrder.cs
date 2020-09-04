@@ -1,7 +1,6 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 
-namespace DatabaseStructure
+namespace DatabaseStructure.EntitySets
 {
     public class DishInOrder
     {

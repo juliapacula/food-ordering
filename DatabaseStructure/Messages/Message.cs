@@ -2,7 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Backend.Messages
+namespace DatabaseStructure.Messages
 {
     [Serializable]
     public abstract class Message
