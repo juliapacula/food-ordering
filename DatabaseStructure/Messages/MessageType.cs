@@ -5,8 +5,6 @@
         #region General
 
         Unknown,
-        S_OK,
-        Error,
 
         #endregion
 
@@ -16,6 +14,16 @@
         InitOrder,
         FinalizeOrder,
         CancelOrder,
+        GetAllDishes,
+
+        #endregion
+
+        #region Replies
+
+        S_OK,
+        FinalizingError,
+        FinalizingSuccess,
+        AllDishes
 
         #endregion
     }

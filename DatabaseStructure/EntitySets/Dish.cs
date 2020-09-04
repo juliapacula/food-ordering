@@ -2,6 +2,7 @@ using System;
 
 namespace DatabaseStructure.EntitySets
 {
+    [Serializable]
     public class Dish
     {
         public Guid Id { get; set; }

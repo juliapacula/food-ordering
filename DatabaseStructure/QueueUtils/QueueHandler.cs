@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,10 @@ namespace DatabaseStructure.QueueUtils
 
         private void HandleMessage(object sender, BasicDeliverEventArgs args)
         {
+            channel.BasicAck(args.DeliveryTag, false);
+
             var msgType = GetMessageType(args);
+            Message replyMessage = null;
 
             switch (msgType)
             {
@@ -51,7 +55,7 @@ namespace DatabaseStructure.QueueUtils
                     HandleInitOrder(Message.Parse<InitOrder>(args.Body));
                     break;
                 case MessageType.FinalizeOrder:
-                    HandleFinalizeOrder(Message.Parse<FinalizeOrder>(args.Body));
+                    replyMessage = HandleFinalizeOrder(Message.Parse<FinalizeOrder>(args.Body));
                     break;
                 case MessageType.CancelOrder:
                     HandleCancelOrder(Message.Parse<CancelOrder>(args.Body));
@@ -59,17 +63,21 @@ namespace DatabaseStructure.QueueUtils
                 case MessageType.TestCommand:
                     Console.WriteLine(Message.Parse<TestCommand>(args.Body).testMessage);
                     break;
+                case MessageType.GetAllDishes:
+                    replyMessage = HandleGetAllDishes();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            channel.BasicAck(args.DeliveryTag, false);
-            channel.TxCommit();
-        }
+            replyMessage ??= new Success();
+            
+            var replyProps = channel.CreateBasicProperties();
+            replyProps.Headers = new Dictionary<string, object> {{"Type", (int) replyMessage.MessageType}};
+            replyProps.CorrelationId = args.BasicProperties.CorrelationId;
 
-        private MessageType GetMessageType(BasicDeliverEventArgs args)
-        {
-            return args.BasicProperties.Headers.TryGetValue("Type", out var obj) ? (MessageType)obj : default;
+            channel.BasicPublish(string.Empty, args.BasicProperties.ReplyTo, replyProps, replyMessage.GetSerialized());
+            channel.TxCommit();
         }
 
         #endregion
@@ -83,14 +91,21 @@ namespace DatabaseStructure.QueueUtils
             db.SaveChanges();
         }
 
-        private void HandleFinalizeOrder(FinalizeOrder finalizeOrder)
+        private Message HandleFinalizeOrder(FinalizeOrder finalizeOrder)
         {
-            var orderEntity = db.Orders.Single(order => order.Id == finalizeOrder.orderId);
+            var orderEntity = db.Orders.SingleOrDefault(order => order.Id == finalizeOrder.orderId) 
+                              ?? new Order {Id = finalizeOrder.orderId};
 
             orderEntity.Address = finalizeOrder.address;
             orderEntity.Email = finalizeOrder.email;
             orderEntity.Name = finalizeOrder.name;
             orderEntity.Surname = finalizeOrder.surname;
+
+            var errors = orderEntity.Validate(finalizeOrder);
+            if (!string.IsNullOrEmpty(errors))
+            {
+                return new FinalizingError {errorMessage = errors};
+            }
 
             db.Update(orderEntity);
 
@@ -111,12 +126,18 @@ namespace DatabaseStructure.QueueUtils
             }
 
             db.SaveChanges();
+            return new Success();
         }
 
         private void HandleInitOrder(InitOrder initOrder)
         {
             db.Orders.Add(new Order { Id = initOrder.orderId });
             db.SaveChanges();
+        }
+
+        private AllDishes HandleGetAllDishes()
+        {
+            return new AllDishes {dishes = db.Dishes.ToList()};
         }
 
         #endregion

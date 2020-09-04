@@ -1,6 +1,8 @@
+using DatabaseStructure.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace DatabaseStructure.QueueUtils
 {
@@ -55,6 +57,11 @@ namespace DatabaseStructure.QueueUtils
             channel.QueueDeclare(QueueName, exclusive: false, autoDelete: false);
             channel.TxSelect();
             channel.BasicQos(0, 1, false);
+        }
+
+        protected MessageType GetMessageType(BasicDeliverEventArgs args)
+        {
+            return args.BasicProperties.Headers.TryGetValue("Type", out var obj) ? (MessageType)obj : default;
         }
 
         #endregion
