@@ -39,7 +39,7 @@ namespace DatabaseStructure.QueueUtils
         protected IBasicProperties CreateProperties(string correlationId, MessageType messageType)
         {
             var properties = channel.CreateBasicProperties();
-            properties.Headers = new Dictionary<string, object> { { "Type", (int)messageType } };
+            properties.Headers = new Dictionary<string, object> {{"Type", (int) messageType}};
             properties.CorrelationId = correlationId;
             properties.ReplyTo = ReplyQueueName;
             return properties;
@@ -67,6 +67,7 @@ namespace DatabaseStructure.QueueUtils
             switch (msgType)
             {
                 case MessageType.S_OK:
+                case MessageType.TestCommand:
                     Console.WriteLine($"Command succesfully sent ({args.BasicProperties.CorrelationId})");
                     break;
                 case MessageType.FinalizingError:
@@ -74,6 +75,7 @@ namespace DatabaseStructure.QueueUtils
                     // todo
                     break;
                 case MessageType.FinalizingSuccess:
+                    var deliveryTime = Message.Parse<FinalizingSuccess>(args.Body).deliveryDateTime;
                     // todo
                     break;
                 case MessageType.AllDishes:

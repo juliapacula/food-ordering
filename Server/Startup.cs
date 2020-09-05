@@ -31,7 +31,6 @@ namespace Server
 
             services.AddSingleton(new RabbitConfig("food_ordering"));
             services.AddHostedService<QueueClient>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

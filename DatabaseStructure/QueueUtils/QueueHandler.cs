@@ -104,7 +104,7 @@ namespace DatabaseStructure.QueueUtils
             var errors = orderEntity.Validate(finalizeOrder);
             if (!string.IsNullOrEmpty(errors))
             {
-                return new FinalizingError {errorMessage = errors};
+                return new FinalizingError {orderId = finalizeOrder.orderId, errorMessage = errors};
             }
 
             db.Update(orderEntity);
@@ -126,12 +126,13 @@ namespace DatabaseStructure.QueueUtils
             }
 
             db.SaveChanges();
-            return new Success();
+            var deliver = DateTime.Now.AddMinutes(new Random().Next(30, 120));
+            return new FinalizingSuccess {orderId = finalizeOrder.orderId, deliveryDateTime = deliver};
         }
 
         private void HandleInitOrder(InitOrder initOrder)
         {
-            db.Orders.Add(new Order { Id = initOrder.orderId });
+            db.Orders.Add(new Order {Id = initOrder.orderId});
             db.SaveChanges();
         }
 
