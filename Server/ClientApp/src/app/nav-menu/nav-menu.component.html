@@ -9,9 +9,11 @@
 
       <button
         [disabled]="isCartEmpty"
+        [routerLink]="'/order'"
         class="btn btn-primary"
         type="button">
         ZŁÓŻ ZAMÓWIENIE
+        <span class="badge badge-danger">{{ cartSize }}</span>
       </button>
     </div>
   </nav>

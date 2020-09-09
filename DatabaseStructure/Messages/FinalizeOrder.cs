@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using DatabaseStructure.EntitySets;
 
 namespace DatabaseStructure.Messages
 {
     [Serializable]
     public class FinalizeOrder : Message
     {
-        public Guid orderId;
-        public string name;
-        public string surname;
-        public string email;
-        public string address;
-        public Dictionary<Guid, int> dishesAndQuantity;
+        public Guid OrderId;
+        public Order Order;
+        public Dictionary<Guid, int> DishesAndQuantity;
 
         public override MessageType MessageType => MessageType.FinalizeOrder;
     }

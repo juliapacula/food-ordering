@@ -20,10 +20,10 @@ namespace DatabaseStructure.QueueUtils
 
         #region Constructor
 
-        protected Queue(IConfiguration _appSettings, RabbitConfig _rabbitConfig)
+        protected Queue(IConfiguration configuration, RabbitConfig rabbitConfig)
         {
-            rabbitConfig = _rabbitConfig;
-            InitRabbitMQ(_appSettings.GetSection("RabbitMq"));
+            this.rabbitConfig = rabbitConfig;
+            InitRabbitMq(configuration.GetSection("RabbitMq"));
         }
 
         #endregion
@@ -41,13 +41,13 @@ namespace DatabaseStructure.QueueUtils
 
         #region Methods
 
-        private void InitRabbitMQ(IConfiguration rabbitAppSettings)
+        private void InitRabbitMq(IConfiguration configuration)
         {
             var factory = new ConnectionFactory
             {
-                UserName = rabbitAppSettings["Username"],
-                Password = rabbitAppSettings["Password"],
-                HostName = rabbitAppSettings["ServerAddress"],
+                UserName = configuration["Username"],
+                Password = configuration["Password"],
+                HostName = configuration["ServerAddress"],
                 VirtualHost = "/"
             };
 

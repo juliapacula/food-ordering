@@ -1,0 +1,172 @@
+<form [formGroup]="form">
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="firstName">Imię</label>
+      <input
+        [class.is-invalid]="form.get('firstName').dirty && form.get('firstName').invalid"
+        id="firstName"
+        class="form-control"
+        formControlName="firstName"
+        type="text">
+      <div
+        *ngIf="form.get('firstName').dirty && form.get('firstName').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+    </div>
+    <div class="form-group col-md-6">
+      <label for="lastName">Nazwisko</label>
+      <input
+        [class.is-invalid]="form.get('lastName').dirty && form.get('lastName').invalid"
+        id="lastName"
+        class="form-control"
+        formControlName="lastName"
+        type="text">
+      <div
+        *ngIf="form.get('lastName').dirty && form.get('lastName').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+    </div>
+    <div class="form-group col-md-6">
+      <label for="phoneNumber">Numer telefonu</label>
+      <input
+        [class.is-invalid]="form.get('phoneNumber').dirty && form.get('phoneNumber').invalid"
+        id="phoneNumber"
+        class="form-control"
+        formControlName="phoneNumber"
+        type="tel">
+      <div
+        *ngIf="form.get('phoneNumber').dirty && form.get('phoneNumber').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+      <div
+        *ngIf="form.get('phoneNumber').dirty && form.get('phoneNumber').hasError('pattern')"
+        class="invalid-feedback">
+        Numer telefonu musi być w formacie 000-000-000.
+      </div>
+    </div>
+    <div class="form-group col-md-6">
+      <label for="email">E-mail</label>
+      <input
+        [class.is-invalid]="form.get('email').dirty && form.get('email').invalid"
+        id="email"
+        class="form-control"
+        formControlName="email"
+        type="email">
+      <div
+        *ngIf="form.get('email').dirty && form.get('email').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-4">
+      <label for="street">Ulica</label>
+      <input
+        [class.is-invalid]="form.get('street').dirty && form.get('street').invalid"
+        id="street"
+        class="form-control"
+        formControlName="street"
+        type="text">
+      <div
+        *ngIf="form.get('street').dirty && form.get('street').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+    </div>
+    <div class="form-group col-md-1">
+      <label for="streetNumber">Nr. domu</label>
+      <input
+        [class.is-invalid]="form.get('streetNumber').dirty && form.get('streetNumber').invalid"
+        id="streetNumber"
+        class="form-control"
+        formControlName="streetNumber"
+        type="text">
+      <div
+        *ngIf="form.get('streetNumber').dirty && form.get('streetNumber').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+    </div>
+    <div class="form-group col-md-1">
+      <label for="flatNumber">Mieszk.</label>
+      <input
+        id="flatNumber"
+        class="form-control"
+        formControlName="flatNumber"
+        type="text">
+    </div>
+    <div class="form-group col-md-2">
+      <label for="postalCode">Kod poczt.</label>
+      <input
+        [class.is-invalid]="form.get('postalCode').dirty && form.get('postalCode').invalid"
+        id="postalCode"
+        class="form-control"
+        formControlName="postalCode"
+        type="text">
+      <div
+        *ngIf="form.get('postalCode').dirty && form.get('postalCode').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+      <div
+        *ngIf="form.get('postalCode').dirty && form.get('postalCode').hasError('pattern')"
+        class="invalid-feedback">
+        Kod pocztowy musi być w formacie 00-000.
+      </div>
+    </div>
+    <div class="form-group col-md-2">
+      <label for="city">Miasto</label>
+      <input
+        [class.is-invalid]="form.get('city').dirty && form.get('city').invalid"
+        id="city"
+        class="form-control"
+        formControlName="city"
+        type="text">
+      <div
+        *ngIf="form.get('city').dirty && form.get('city').hasError('required')"
+        class="invalid-feedback">
+        To pole jest wymagane.
+      </div>
+      <div
+        *ngIf="form.get('city').dirty && form.get('city').hasError('maxlength')"
+        class="invalid-feedback">
+        Wpisano zbyt dużo znaków.
+      </div>
+    </div>
+    <div class="form-group col-md-2">
+      <label for="country">Kraj</label>
+      <input
+        id="country"
+        class="form-control-plaintext"
+        formControlName="country"
+        readonly
+        type="text">
+    </div>
+    <div class="form-group col-12">
+      <label for="comment">Komentarz</label>
+      <textarea
+        id="comment"
+        [class.is-invalid]="form.get('comment').dirty && form.get('comment').invalid"
+        class="form-control"
+        formControlName="comment"
+        type="text"></textarea>
+      <div
+        *ngIf="form.get('comment').dirty && form.get('comment').hasError('maxlength')"
+        class="invalid-feedback">
+        Wpisano zbyt dużo znaków.
+      </div>
+    </div>
+  </div>
+
+  <button
+    [disabled]="form.invalid"
+    (click)="submitOrder()"
+    class="btn btn-primary"
+    type="submit">
+    ZAMÓW
+  </button>
+</form>

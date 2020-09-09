@@ -11,6 +11,10 @@ export class CartState {
         return this._dishes.length;
     }
 
+    public get dishes(): Dish[] {
+        return this._dishes;
+    }
+
     public add(dish: Dish): void {
         this._dishes.push({ ...dish });
     }

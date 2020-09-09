@@ -3,28 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DatabaseStructure;
 using DatabaseStructure.EntitySets;
 using DatabaseStructure.Messages;
+using DatabaseStructure.QueueUtils;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace DatabaseStructure.QueueUtils
+namespace Backend.Services
 {
     public class QueueHandler : Queue
     {
         #region Fields
 
-        private readonly DatabaseContext db;
+        private readonly DatabaseContext context;
 
         #endregion
 
         #region Constructor
 
-        public QueueHandler(IConfiguration _appSettings, RabbitConfig _rabbitConfig, DatabaseContext _db)
-            : base(_appSettings, _rabbitConfig)
+        public QueueHandler(IConfiguration configuration, RabbitConfig _rabbitConfig, DatabaseContext context)
+            : base(configuration, _rabbitConfig)
         {
-            db = _db;
+            context = context;
         }
 
         #endregion
@@ -71,7 +73,7 @@ namespace DatabaseStructure.QueueUtils
             }
 
             replyMessage ??= new Success();
-            
+
             var replyProps = channel.CreateBasicProperties();
             replyProps.Headers = new Dictionary<string, object> {{"Type", (int) replyMessage.MessageType}};
             replyProps.CorrelationId = args.BasicProperties.CorrelationId;
@@ -86,32 +88,27 @@ namespace DatabaseStructure.QueueUtils
 
         private void HandleCancelOrder(CancelOrder cancelOrder)
         {
-            var orderEntity = db.Orders.FirstOrDefault(order => order.Id == cancelOrder.orderId);
-            db.Remove(orderEntity);
-            db.SaveChanges();
+            var orderEntity = context.Orders.FirstOrDefault(order => order.Id == cancelOrder.orderId);
+            context.Remove(orderEntity);
+            context.SaveChanges();
         }
 
         private Message HandleFinalizeOrder(FinalizeOrder finalizeOrder)
         {
-            var orderEntity = db.Orders.SingleOrDefault(order => order.Id == finalizeOrder.orderId) 
-                              ?? new Order {Id = finalizeOrder.orderId};
-
-            orderEntity.Address = finalizeOrder.address;
-            orderEntity.Email = finalizeOrder.email;
-            orderEntity.Name = finalizeOrder.name;
-            orderEntity.Surname = finalizeOrder.surname;
+            var orderEntity = context.Orders.SingleOrDefault(order => order.Id == finalizeOrder.OrderId)
+                              ?? finalizeOrder.Order;
 
             var errors = orderEntity.Validate(finalizeOrder);
             if (!string.IsNullOrEmpty(errors))
             {
-                return new FinalizingError {orderId = finalizeOrder.orderId, errorMessage = errors};
+                return new FinalizingError {OrderId = finalizeOrder.OrderId, ErrorMessage = errors};
             }
 
-            db.Update(orderEntity);
+            context.Update(orderEntity);
 
-            foreach (var (guid, quantity) in finalizeOrder.dishesAndQuantity)
+            foreach (var (guid, quantity) in finalizeOrder.DishesAndQuantity)
             {
-                var dish = db.Dishes.Single(d => d.Id == guid);
+                var dish = context.Dishes.Single(d => d.Id == guid);
 
                 var dishEntity = new DishInOrder
                 {
@@ -122,23 +119,23 @@ namespace DatabaseStructure.QueueUtils
                     Quantity = quantity,
                 };
 
-                db.DishInOrders.Add(dishEntity);
+                context.DishInOrders.Add(dishEntity);
             }
 
-            db.SaveChanges();
+            context.SaveChanges();
             var deliver = DateTime.Now.AddMinutes(new Random().Next(30, 120));
-            return new FinalizingSuccess {orderId = finalizeOrder.orderId, deliveryDateTime = deliver};
+            return new FinalizingSuccess {OrderId = finalizeOrder.OrderId, DeliveryDateTime = deliver};
         }
 
         private void HandleInitOrder(InitOrder initOrder)
         {
-            db.Orders.Add(new Order {Id = initOrder.orderId});
-            db.SaveChanges();
+            context.Orders.Add(new Order {Id = initOrder.OrderId});
+            context.SaveChanges();
         }
 
         private AllDishes HandleGetAllDishes()
         {
-            return new AllDishes {dishes = db.Dishes.ToList()};
+            return new AllDishes {dishes = context.Dishes.ToList()};
         }
 
         #endregion

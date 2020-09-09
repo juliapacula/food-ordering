@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DatabaseStructure.Messages;
+using DatabaseStructure.QueueUtils;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace DatabaseStructure.QueueUtils
+namespace Server.Services
 {
     public class QueueClient : Queue
     {
@@ -19,8 +20,8 @@ namespace DatabaseStructure.QueueUtils
 
         #region Constructor
 
-        public QueueClient(IConfiguration _appSettings, RabbitConfig _rabbitConfig)
-            : base(_appSettings, _rabbitConfig)
+        public QueueClient(IConfiguration configuration, RabbitConfig rabbitConfig)
+            : base(configuration, rabbitConfig)
         {
         }
 
@@ -42,6 +43,7 @@ namespace DatabaseStructure.QueueUtils
             properties.Headers = new Dictionary<string, object> {{"Type", (int) messageType}};
             properties.CorrelationId = correlationId;
             properties.ReplyTo = ReplyQueueName;
+
             return properties;
         }
 
@@ -71,15 +73,15 @@ namespace DatabaseStructure.QueueUtils
                     Console.WriteLine($"Command succesfully sent ({args.BasicProperties.CorrelationId})");
                     break;
                 case MessageType.FinalizingError:
-                    var errors = Message.Parse<FinalizingError>(args.Body).errorMessage;
+                    var errors = Message.Parse<FinalizingError>(args.Body.ToArray()).ErrorMessage;
                     // todo
                     break;
                 case MessageType.FinalizingSuccess:
-                    var deliveryTime = Message.Parse<FinalizingSuccess>(args.Body).deliveryDateTime;
+                    var deliveryTime = Message.Parse<FinalizingSuccess>(args.Body.ToArray()).DeliveryDateTime;
                     // todo
                     break;
                 case MessageType.AllDishes:
-                    var dishes = Message.Parse<AllDishes>(args.Body).dishes;
+                    var dishes = Message.Parse<AllDishes>(args.Body.ToArray()).dishes;
                     // todo
                     break;
                 default:

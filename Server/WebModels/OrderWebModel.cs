@@ -1,10 +1,10 @@
-using System;
+#nullable enable
+using System.Collections.Generic;
 
-namespace DatabaseStructure.EntitySets
+namespace Server.WebModels
 {
-    public class Order
+    public class OrderWebModel
     {
-        public Guid Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
@@ -14,6 +14,7 @@ namespace DatabaseStructure.EntitySets
         public string FlatNumber { get; set; }
         public string PostalCode { get; set; }
         public string Country { get; set; }
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
+        public IEnumerable<DishWebModel> Dishes { get; set; }
     }
 }

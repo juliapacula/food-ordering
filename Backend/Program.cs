@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using Backend.Services;
 using DatabaseStructure;
 using DatabaseStructure.QueueUtils;
 using Microsoft.EntityFrameworkCore;

@@ -5,8 +5,8 @@ namespace DatabaseStructure.Messages
     [Serializable]
     public class FinalizingSuccess : Message
     {
-        public Guid orderId;
-        public DateTime deliveryDateTime;
+        public Guid OrderId;
+        public DateTime DeliveryDateTime;
         
         public override MessageType MessageType => MessageType.FinalizingSuccess;
     }

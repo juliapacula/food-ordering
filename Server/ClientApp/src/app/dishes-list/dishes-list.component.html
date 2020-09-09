@@ -9,9 +9,10 @@
         <button
           *ngIf="isAddedToCart(dish); else addButton"
           (click)="removeDishFromCart(dish)"
-          class="btn btn-primary"
+          class="btn btn-danger"
           type="button">
           <span class="mdi mdi-cart-remove"></span>
+          USUŃ
         </button>
         <ng-template #addButton>
           <button
@@ -19,6 +20,7 @@
             class="btn btn-primary"
             type="button">
             <span class="mdi mdi-cart-plus"></span>
+            DODAJ
           </button>
         </ng-template>
       </div>

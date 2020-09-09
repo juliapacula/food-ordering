@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Server.Services;
 
 namespace Server
 {
@@ -55,6 +56,7 @@ namespace Server
             }
 
             app.UseRouting();
+            app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {

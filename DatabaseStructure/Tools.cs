@@ -14,26 +14,18 @@ namespace DatabaseStructure
         {
             var errors = string.Empty;
 
-            if (finalizeOrder.dishesAndQuantity == null || finalizeOrder.dishesAndQuantity.Count == 0)
+            if (finalizeOrder.DishesAndQuantity == null || finalizeOrder.DishesAndQuantity.Count == 0)
                 errors += "Order is empty!";
 
-            if (string.IsNullOrWhiteSpace(order.Address))
+            if (string.IsNullOrWhiteSpace(order.Street))
                 errors += "Address can't be empty!";
 
-            if (string.IsNullOrWhiteSpace(order.Name))
+            if (string.IsNullOrWhiteSpace(order.FirstName))
                 errors += "Name can't be empty!";
 
-            if (string.IsNullOrWhiteSpace(order.Surname))
+            if (string.IsNullOrWhiteSpace(order.LastName))
                 errors += "Surname can't be empty!";
 
-            try
-            {
-                _ = new MailAddress(order.Email).Address;
-            }
-            catch (FormatException)
-            {
-                errors += "Invalid email!";
-            }
 
             return errors;
         }
