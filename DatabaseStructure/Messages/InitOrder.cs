@@ -1,4 +1,5 @@
 ﻿using System;
+using DatabaseStructure.EntitySets;
 
 namespace DatabaseStructure.Messages
 {

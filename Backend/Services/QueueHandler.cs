@@ -17,7 +17,7 @@ namespace Backend.Services
     {
         #region Fields
 
-        private readonly DatabaseContext context;
+        private readonly DatabaseContext _context;
 
         #endregion
 
@@ -26,7 +26,7 @@ namespace Backend.Services
         public QueueHandler(IConfiguration configuration, RabbitConfig _rabbitConfig, DatabaseContext context)
             : base(configuration, _rabbitConfig)
         {
-            context = context;
+            _context = context;
         }
 
         #endregion
@@ -88,27 +88,29 @@ namespace Backend.Services
 
         private void HandleCancelOrder(CancelOrder cancelOrder)
         {
-            var orderEntity = context.Orders.FirstOrDefault(order => order.Id == cancelOrder.orderId);
-            context.Remove(orderEntity);
-            context.SaveChanges();
+            var orderEntity = _context.Orders.FirstOrDefault(order => order.Id == cancelOrder.orderId);
+            _context.Remove(orderEntity);
+            _context.SaveChanges();
         }
 
         private Message HandleFinalizeOrder(FinalizeOrder finalizeOrder)
         {
-            var orderEntity = context.Orders.SingleOrDefault(order => order.Id == finalizeOrder.OrderId)
+            var orderEntity = _context.Orders.SingleOrDefault(order => order.Id == finalizeOrder.Order.Id)
                               ?? finalizeOrder.Order;
 
             var errors = orderEntity.Validate(finalizeOrder);
+
             if (!string.IsNullOrEmpty(errors))
             {
-                return new FinalizingError {OrderId = finalizeOrder.OrderId, ErrorMessage = errors};
+                return new FinalizingError {OrderId = finalizeOrder.Order.Id, ErrorMessage = errors};
             }
 
-            context.Update(orderEntity);
+            _context.Update(orderEntity);
+            _context.SaveChanges();
 
             foreach (var (guid, quantity) in finalizeOrder.DishesAndQuantity)
             {
-                var dish = context.Dishes.Single(d => d.Id == guid);
+                var dish = _context.Dishes.Single(d => d.Id == guid);
 
                 var dishEntity = new DishInOrder
                 {
@@ -119,23 +121,25 @@ namespace Backend.Services
                     Quantity = quantity,
                 };
 
-                context.DishInOrders.Add(dishEntity);
+                _context.DishInOrders.Add(dishEntity);
             }
 
-            context.SaveChanges();
+            _context.SaveChanges();
+
             var deliver = DateTime.Now.AddMinutes(new Random().Next(30, 120));
-            return new FinalizingSuccess {OrderId = finalizeOrder.OrderId, DeliveryDateTime = deliver};
+            
+            return new FinalizingSuccess { OrderId = finalizeOrder.Order.Id, DeliveryDateTime = deliver };
         }
 
         private void HandleInitOrder(InitOrder initOrder)
         {
-            context.Orders.Add(new Order {Id = initOrder.OrderId});
-            context.SaveChanges();
+            _context.Orders.Add(new Order {Id = initOrder.OrderId});
+            _context.SaveChanges();
         }
 
         private AllDishes HandleGetAllDishes()
         {
-            return new AllDishes {dishes = context.Dishes.ToList()};
+            return new AllDishes {dishes = _context.Dishes.ToList()};
         }
 
         #endregion

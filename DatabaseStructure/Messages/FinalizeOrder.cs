@@ -7,7 +7,6 @@ namespace DatabaseStructure.Messages
     [Serializable]
     public class FinalizeOrder : Message
     {
-        public Guid OrderId;
         public Order Order;
         public Dictionary<Guid, int> DishesAndQuantity;
 

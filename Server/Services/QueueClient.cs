@@ -12,39 +12,18 @@ namespace Server.Services
 {
     public class QueueClient : Queue
     {
-        #region MyRegion
-
         public string ReplyQueueName { get; private set; }
-
-        #endregion
-
-        #region Constructor
 
         public QueueClient(IConfiguration configuration, RabbitConfig rabbitConfig)
             : base(configuration, rabbitConfig)
         {
         }
 
-        #endregion
-
-        #region Methods
-
         public void Publish(Message msg)
         {
             var props = CreateProperties(Guid.NewGuid().ToString(), msg.MessageType);
-
             channel.BasicPublish(string.Empty, QueueName, props, msg.GetSerialized());
             channel.TxCommit();
-        }
-
-        protected IBasicProperties CreateProperties(string correlationId, MessageType messageType)
-        {
-            var properties = channel.CreateBasicProperties();
-            properties.Headers = new Dictionary<string, object> {{"Type", (int) messageType}};
-            properties.CorrelationId = correlationId;
-            properties.ReplyTo = ReplyQueueName;
-
-            return properties;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -59,9 +38,19 @@ namespace Server.Services
             return Task.CompletedTask;
         }
 
+        private IBasicProperties CreateProperties(string correlationId, MessageType messageType)
+        {
+            var properties = channel.CreateBasicProperties();
+            properties.Headers = new Dictionary<string, object> {{"Type", (int) messageType}};
+            properties.CorrelationId = correlationId;
+            properties.ReplyTo = ReplyQueueName;
+
+            return properties;
+        }
+
         private void OnReply(object sender, BasicDeliverEventArgs args)
         {
-            channel.BasicAck(args.DeliveryTag, false);
+            // channel.BasicAck(args.DeliveryTag, false);
             channel.TxCommit();
 
             var msgType = GetMessageType(args);
@@ -88,7 +77,5 @@ namespace Server.Services
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        #endregion
     }
 }

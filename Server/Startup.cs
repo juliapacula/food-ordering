@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Server.Hubs;
 using Server.Services;
 
 namespace Server
@@ -28,10 +29,15 @@ namespace Server
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/dist"; });
             services.AddDbContext<DatabaseContext>(options =>
                     options.UseNpgsql(Configuration.GetConnectionString("Postgres")),
-                ServiceLifetime.Singleton);
+                ServiceLifetime.Scoped);
 
             services.AddSingleton(new RabbitConfig("food_ordering"));
-            services.AddHostedService<QueueClient>();
+            services.AddSingleton<QueueClient>();
+            services.AddHostedService(provider => provider.GetService<QueueClient>());
+            services.AddSignalR(o =>
+            {
+                o.EnableDetailedErrors = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,13 +62,13 @@ namespace Server
             }
 
             app.UseRouting();
-            app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.MapHub<OrderFulfillmentHub>("/hub/order");
             });
 
             app.UseSpa(spa =>
