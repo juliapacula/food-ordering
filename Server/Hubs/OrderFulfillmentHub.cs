@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using DatabaseStructure.Messages;
 using Microsoft.AspNetCore.SignalR;
@@ -16,23 +17,30 @@ namespace Server.Hubs
             _queueClient = queueClient;
         }
 
-        public override async Task OnConnectedAsync()
+        public async Task InitializeOrder()
         {
             var orderId = Guid.NewGuid();
-            Context.Items.Add("orderId", orderId);
-            await Clients.Caller.SendAsync(OrderFulfillmentMessages.Init, orderId);
+            if (Context.Items["orderId"] != null)
+            {
+                Context.Items["orderId"] = orderId;
+            }
+            else
+            {
+                Context.Items.Add("orderId", orderId);
+            }
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, orderId.ToString());
+            await Clients.Group(orderId.ToString()).SendAsync(OrderFulfillmentMessages.Init, orderId);
 
             _queueClient.Publish(new InitOrder()
             {
                 OrderId = orderId,
             });
-
-            await base.OnConnectedAsync();
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public async Task CancelOrder()
         {
-            var orderId = (Guid)Context.Items["orderId"];
+            var orderId = (Guid) Context.Items["orderId"];
 
             await Clients.Caller.SendAsync(OrderFulfillmentMessages.Cancelled, orderId);
 
@@ -40,8 +48,6 @@ namespace Server.Hubs
             {
                 OrderId = orderId,
             });
-
-            await base.OnDisconnectedAsync(exception);
         }
     }
 
@@ -49,7 +55,6 @@ namespace Server.Hubs
     {
         public static readonly string Init = "Init";
         public static readonly string Registered = "Registered";
-        public static readonly string Processed = "Processed";
         public static readonly string Completed = "Completed";
         public static readonly string Failed = "Failed";
         public static readonly string Cancelled = "Cancelled";

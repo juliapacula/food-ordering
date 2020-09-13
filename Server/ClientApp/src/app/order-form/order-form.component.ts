@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Dish } from '../dishes-list/models';
@@ -14,8 +14,9 @@ import { OrderForm } from './utils/order.form';
         OrderService,
     ],
 })
-export class OrderFormComponent implements OnInit {
+export class OrderFormComponent implements OnInit, OnDestroy {
     public form: FormGroup;
+    private _wasSaved: boolean = false;
 
     constructor(
         private _cartState: CartState,
@@ -25,8 +26,14 @@ export class OrderFormComponent implements OnInit {
     ) { }
 
     public ngOnInit(): void {
-        this._orderFulfillmentService.connect();
+        this._orderFulfillmentService.connect().then(() => this._orderFulfillmentService.initOrder());
         this._initializeForm();
+    }
+
+    public ngOnDestroy(): void {
+        if (!this._wasSaved) {
+            this._orderFulfillmentService.cancelOrder();
+        }
     }
 
     public submitOrder(): void {
@@ -36,6 +43,7 @@ export class OrderFormComponent implements OnInit {
         })
             .subscribe(
                 () => {
+                    this._wasSaved = true;
                     this._cartState.clear();
                     this._router.navigateByUrl('/dishes');
                 },

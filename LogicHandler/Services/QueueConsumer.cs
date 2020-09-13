@@ -22,7 +22,7 @@ namespace LogicHandler.Services
             IConfiguration configuration,
             RabbitConfig _rabbitConfig,
             IServiceProvider serviceProvider
-            )
+        )
             : base(configuration, _rabbitConfig)
         {
             ServiceProvider = serviceProvider;
@@ -43,7 +43,6 @@ namespace LogicHandler.Services
         {
             Channel.BasicAck(args.DeliveryTag, false);
             var msgType = GetMessageType(args);
-            Message replyMessage = null;
 
             switch (msgType)
             {
@@ -51,7 +50,7 @@ namespace LogicHandler.Services
                     await HandleInitOrderAsync(Message.Parse<InitOrder>(args.Body.ToArray()));
                     break;
                 case MessageType.FinalizeOrder:
-                    replyMessage = await HandleFinalizeOrderAsync(Message.Parse<FinalizeOrder>(args.Body.ToArray()));
+                    await HandleFinalizeOrderAsync(args, Message.Parse<FinalizeOrder>(args.Body.ToArray()));
                     break;
                 case MessageType.CancelOrder:
                     await HandleCancelOrderAsync(Message.Parse<CancelOrder>(args.Body.ToArray()));
@@ -59,14 +58,6 @@ namespace LogicHandler.Services
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            if (replyMessage is null)
-            {
-                return;
-            }
-
-            var replyProps = CreateProperties(args.BasicProperties.CorrelationId, replyMessage.MessageType);
-            Channel.BasicPublish(string.Empty, args.BasicProperties.ReplyTo, replyProps, replyMessage.GetSerialized());
         }
 
         private async Task HandleInitOrderAsync(InitOrder initOrder)
@@ -78,7 +69,7 @@ namespace LogicHandler.Services
             await command.HandleAsync();
         }
 
-        private async Task<Message> HandleFinalizeOrderAsync(FinalizeOrder finalizeOrder)
+        private async Task HandleFinalizeOrderAsync(BasicDeliverEventArgs args, FinalizeOrder finalizeOrder)
         {
             using var scope = ServiceProvider.CreateScope();
             var command = scope.ServiceProvider.GetRequiredService<FinalizeOrderCommand>();
@@ -86,27 +77,39 @@ namespace LogicHandler.Services
             command.Order = finalizeOrder.Order;
 
             var errors = command.Validate();
+            Message finalMessage;
 
             if (errors.Count == 0)
             {
+                var registrationMessage = new RegisterOrder
+                {
+                    OrderId = finalizeOrder.Order.Id,
+                };
+                var registrationMessageProps =
+                    CreateProperties(args.BasicProperties.CorrelationId, MessageType.RegisterOrder);
+                Channel.BasicPublish(string.Empty, args.BasicProperties.ReplyTo, registrationMessageProps,
+                    registrationMessage.GetSerialized());
                 await command.HandleAsync();
+                finalMessage = new FinalizingSuccess
+                {
+                    OrderId = finalizeOrder.Order.Id,
+                    DeliveryDateTime = DateTime.Now.AddMinutes(new Random().Next(30, 120)),
+                };
             }
             else
             {
-                return new FinalizingError()
+                finalMessage = new FinalizingError()
                 {
                     OrderId = finalizeOrder.Order.Id,
                     ErrorMessage = errors.Values.ToList().First(),
                 };
             }
 
-            var deliver = DateTime.Now.AddMinutes(new Random().Next(30, 120));
-
-            return new FinalizingSuccess
-            {
-                OrderId = finalizeOrder.Order.Id,
-                DeliveryDateTime = deliver,
-            };
+            var replyProps = CreateProperties(args.BasicProperties.CorrelationId, finalMessage.MessageType);
+            Channel.BasicPublish(string.Empty,
+                args.BasicProperties.ReplyTo,
+                replyProps,
+                finalMessage.GetSerialized());
         }
 
         private async Task HandleCancelOrderAsync(CancelOrder cancelOrder)

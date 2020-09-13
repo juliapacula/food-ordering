@@ -2,26 +2,11 @@
 {
     public enum MessageType
     {
-        #region General
-
-        Unknown,
-
-        #endregion
-
-        #region Commands
-
         InitOrder,
         FinalizeOrder,
+        RegisterOrder,
         CancelOrder,
-        GetAllDishes,
-
-        #endregion
-
-        #region Replies
-
         FinalizingError,
         FinalizingSuccess,
-
-        #endregion
     }
 }

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using DatabaseStructure.EntitySets;
 using DatabaseStructure.Logic.Orders.Models;
 using DatabaseStructure.Logic.Shared;
 
@@ -41,15 +41,16 @@ namespace DatabaseStructure.Logic.Orders.Commands
             }
 
             await _context.SaveChangesAsync();
+            Thread.Sleep(10000);
         }
 
         public Dictionary<string, string> Validate()
         {
             var errors = new Dictionary<string, string>();
 
-            if (string.IsNullOrWhiteSpace(Order.Street))
+            if (string.IsNullOrWhiteSpace(Order.FlatNumber))
             {
-                errors["Street"] = "Address can't be empty!";
+                errors["FlatNumber"] = "Address can't be empty!";
             }
 
             if (string.IsNullOrWhiteSpace(Order.FirstName))

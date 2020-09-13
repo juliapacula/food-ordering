@@ -1,5 +1,4 @@
-﻿using DatabaseStructure.EntitySets;
-using DatabaseStructure.Logic.Orders.Models;
+﻿using DatabaseStructure.Logic.Orders.Models;
 using DatabaseStructure.Messages;
 
 namespace DatabaseStructure

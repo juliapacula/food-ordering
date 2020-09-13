@@ -24,7 +24,6 @@ namespace Server.Dishes.Controllers
         public async Task<IEnumerable<DishWebModel>> GetDishesAsync()
         {
             var result = await _client.GetDishesAsync();
-
             return result.Select(d => d.ToWebModel());
         }
     }

@@ -1,1 +1,1 @@
-export { CartState } from './services';
+export { CartState, ErrorInterceptor } from './services';

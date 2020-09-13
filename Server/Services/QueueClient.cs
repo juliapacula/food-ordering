@@ -4,21 +4,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using DatabaseStructure.Messages;
 using DatabaseStructure.QueueUtils;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Server.Hubs;
 
 namespace Server.Services
 {
     public class QueueClient : Queue
     {
+        private readonly IHubContext<OrderFulfillmentHub> _hubContext;
         private string ReplyQueueName { get; set; }
         private Guid CorrelationId { get; set; }
         private AsyncEventingBasicConsumer Consumer { get; set; }
 
-        public QueueClient(IConfiguration configuration, RabbitConfig rabbitConfig)
+        public QueueClient(IConfiguration configuration, RabbitConfig rabbitConfig,
+            IHubContext<OrderFulfillmentHub> hubContext)
             : base(configuration, rabbitConfig)
         {
+            _hubContext = hubContext;
         }
 
         public void Publish(Message msg)
@@ -62,13 +67,22 @@ namespace Server.Services
 
             switch (msgType)
             {
+                case MessageType.RegisterOrder:
+                    var message = Message.Parse<RegisterOrder>(args.Body.ToArray());
+                    _hubContext.Clients.Group(message.OrderId.ToString())
+                        .SendAsync(OrderFulfillmentMessages.Registered);
+                    break;
                 case MessageType.FinalizingError:
-                    var errors = Message.Parse<FinalizingError>(args.Body.ToArray()).ErrorMessage;
-                    // todo
+                    var error = Message.Parse<FinalizingError>(args.Body.ToArray());
+                    _hubContext.Clients.Group(error.OrderId.ToString()).SendAsync(
+                        OrderFulfillmentMessages.Failed,
+                        error.ErrorMessage);
                     break;
                 case MessageType.FinalizingSuccess:
-                    var deliveryTime = Message.Parse<FinalizingSuccess>(args.Body.ToArray()).DeliveryDateTime;
-                    // todo
+                    var success = Message.Parse<FinalizingSuccess>(args.Body.ToArray());
+                    _hubContext.Clients.Group(success.OrderId.ToString()).SendAsync(
+                        OrderFulfillmentMessages.Completed,
+                        success.DeliveryDateTime);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -1,8 +1,7 @@
 using System;
 using DatabaseStructure.Logic.Dishes.Models;
-using DatabaseStructure.Logic.Orders.Models;
 
-namespace DatabaseStructure.EntitySets
+namespace DatabaseStructure.Logic.Orders.Models
 {
     public class DishInOrder
     {

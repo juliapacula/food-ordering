@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
+import { ToastrService } from 'ngx-toastr';
 import { OrderFulfillment } from '../models';
 import { OrderStatus } from './order.status';
 
@@ -11,11 +12,12 @@ export class OrderFulfillmentService {
 
     constructor(
         private _orderStatus: OrderStatus,
+        private _toastrService: ToastrService,
     ) {}
 
-    public connect(): void {
+    public connect(): Promise<void> {
         if (this._connection && this._connection.state !== HubConnectionState.Disconnected) {
-            return;
+            return Promise.resolve();
         }
 
         this._connection = new HubConnectionBuilder()
@@ -26,12 +28,27 @@ export class OrderFulfillmentService {
             this._orderStatus.orderId = orderId;
         });
 
-        this._connection.on(OrderFulfillment.Registered, (orderId: string) => {
-            this._handleOrderMessage(orderId);
+        this._connection.on(OrderFulfillment.Registered, () => {
+            this._handleRegisteredMessage();
         });
 
-        this._connection.start()
-            .then();
+        this._connection.on(OrderFulfillment.Completed, (orderId: string) => {
+            this._handleCompletedMessage(orderId);
+        });
+
+        this._connection.on(OrderFulfillment.Failed, (error: string) => {
+            this._handleFailedMessage(error);
+        });
+
+        return this._connection.start();
+    }
+
+    public initOrder(): void {
+        this._connection.send('InitializeOrder').then();
+    }
+
+    public cancelOrder(): void {
+        this._connection.send('CancelOrder').then();
     }
 
     public disconnect(): void {
@@ -39,7 +56,18 @@ export class OrderFulfillmentService {
             .then();
     }
 
-    private _handleOrderMessage(message: any): void {
-        console.log(message);
+    private _handleRegisteredMessage(): void {
+        this._toastrService.success(`Twoje zamówienie zostało zarejestrowane. Za chwilę poinformujemy o czasie dostawy.`);
+    }
+
+    private _handleCompletedMessage(deliveryTime: string): void {
+        const date = `${new Date(deliveryTime).getDate()}.${new Date(deliveryTime).getMonth() + 1}`;
+        const time = `${new Date(deliveryTime).getHours()}:${new Date(deliveryTime).getMinutes()}`;
+
+        this._toastrService.success(`Twoje zamówienie zostało przyjęte! Przewidywany czas dostawy to ${date} o godzinie ${time}.`);
+    }
+
+    private _handleFailedMessage(error: string): void {
+        this._toastrService.error(`Twoje zamówienie nie mogło zostać przyjęte z powodu blędu: ${error}.`);
     }
 }

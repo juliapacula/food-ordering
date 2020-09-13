@@ -3,4 +3,5 @@ export enum OrderFulfillment {
     Registered = 'Registered',
     Completed = 'Completed',
     Failed = 'Failed',
+    Cancelled = 'Cancelled',
 }

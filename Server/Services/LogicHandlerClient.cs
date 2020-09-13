@@ -17,9 +17,19 @@ namespace Server.Services
 
         public async Task<IEnumerable<Dish>> GetDishesAsync()
         {
-            var result = await _client.GetStringAsync("dishes");
+            try
+            {
+                var result = await _client.GetStringAsync("dishes");
 
-            return JsonConvert.DeserializeObject<IEnumerable<Dish>>(result);
+                return JsonConvert.DeserializeObject<IEnumerable<Dish>>(result);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpResponseException
+                {
+                    Value = "CONNECTION_ERROR"
+                };
+            }
         }
     }
 }

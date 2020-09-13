@@ -3,10 +3,10 @@
 namespace DatabaseStructure.Messages
 {
     [Serializable]
-    public class InitOrder : Message
+    public class RegisterOrder : Message
     {
         public Guid OrderId { get; set; }
 
-        public override MessageType MessageType => MessageType.InitOrder;
+        public override MessageType MessageType => MessageType.RegisterOrder;
     }
 }
