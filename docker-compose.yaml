@@ -12,7 +12,6 @@ services:
       - ASPNET_ENVIRONMENT="Production"
     depends_on:
       - logichandler
-    command: ["./wait-for-it.sh", "logichandler:80"]
     networks:
       - api
   logichandler:
@@ -27,7 +26,6 @@ services:
     depends_on:
       - rabbit
       - dbmigrator
-    command: ["./wait-for-it.sh", "rabbit:15672"]
     networks:
       - api
   dbmigrator:
