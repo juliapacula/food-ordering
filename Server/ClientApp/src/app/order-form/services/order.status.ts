@@ -13,4 +13,8 @@ export class OrderStatus {
     public set orderId(value: string) {
         this._orderId = value;
     }
+
+    public resetOrder(): void {
+        this.orderId = null;
+    }
 }

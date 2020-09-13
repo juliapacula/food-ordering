@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using DatabaseStructure.EntitySets;
+using DatabaseStructure.Logic.Orders.Models;
 
 namespace DatabaseStructure.Messages
 {
@@ -8,7 +8,7 @@ namespace DatabaseStructure.Messages
     public class FinalizeOrder : Message
     {
         public Order Order;
-        public Dictionary<Guid, int> DishesAndQuantity;
+        public IEnumerable<Guid> Dishes;
 
         public override MessageType MessageType => MessageType.FinalizeOrder;
     }

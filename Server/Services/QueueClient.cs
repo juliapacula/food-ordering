@@ -12,7 +12,9 @@ namespace Server.Services
 {
     public class QueueClient : Queue
     {
-        public string ReplyQueueName { get; private set; }
+        private string ReplyQueueName { get; set; }
+        private Guid CorrelationId { get; set; }
+        private AsyncEventingBasicConsumer Consumer { get; set; }
 
         public QueueClient(IConfiguration configuration, RabbitConfig rabbitConfig)
             : base(configuration, rabbitConfig)
@@ -21,46 +23,45 @@ namespace Server.Services
 
         public void Publish(Message msg)
         {
-            var props = CreateProperties(Guid.NewGuid().ToString(), msg.MessageType);
-            channel.BasicPublish(string.Empty, QueueName, props, msg.GetSerialized());
-            channel.TxCommit();
+            var properties = CreateProperties();
+            properties.Headers.Add("Type", (int) msg.MessageType);
+            Channel.BasicPublish(string.Empty, QueueName, properties, msg.GetSerialized());
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             stoppingToken.ThrowIfCancellationRequested();
 
-            ReplyQueueName = channel.QueueDeclare().QueueName;
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += OnReply;
-            channel.BasicConsume(ReplyQueueName, true, consumer);
+            ReplyQueueName = Channel.QueueDeclare().QueueName;
+            Consumer = new AsyncEventingBasicConsumer(Channel);
+            Consumer.Received += OnReply;
+            Channel.BasicConsume(ReplyQueueName, true, Consumer);
+            CorrelationId = Guid.NewGuid();
 
             return Task.CompletedTask;
         }
 
-        private IBasicProperties CreateProperties(string correlationId, MessageType messageType)
+        private IBasicProperties CreateProperties()
         {
-            var properties = channel.CreateBasicProperties();
-            properties.Headers = new Dictionary<string, object> {{"Type", (int) messageType}};
-            properties.CorrelationId = correlationId;
+            var properties = Channel.CreateBasicProperties();
+            properties.Headers = new Dictionary<string, object>();
+            properties.CorrelationId = CorrelationId.ToString();
             properties.ReplyTo = ReplyQueueName;
 
             return properties;
         }
 
-        private void OnReply(object sender, BasicDeliverEventArgs args)
+        private Task OnReply(object sender, BasicDeliverEventArgs args)
         {
-            // channel.BasicAck(args.DeliveryTag, false);
-            channel.TxCommit();
+            if (args.BasicProperties.CorrelationId != CorrelationId.ToString())
+            {
+                return Task.CompletedTask;
+            }
 
             var msgType = GetMessageType(args);
 
             switch (msgType)
             {
-                case MessageType.S_OK:
-                case MessageType.TestCommand:
-                    Console.WriteLine($"Command succesfully sent ({args.BasicProperties.CorrelationId})");
-                    break;
                 case MessageType.FinalizingError:
                     var errors = Message.Parse<FinalizingError>(args.Body.ToArray()).ErrorMessage;
                     // todo
@@ -69,13 +70,11 @@ namespace Server.Services
                     var deliveryTime = Message.Parse<FinalizingSuccess>(args.Body.ToArray()).DeliveryDateTime;
                     // todo
                     break;
-                case MessageType.AllDishes:
-                    var dishes = Message.Parse<AllDishes>(args.Body.ToArray()).dishes;
-                    // todo
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            return Task.CompletedTask;
         }
     }
 }

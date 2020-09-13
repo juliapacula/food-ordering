@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Dish } from '../dishes-list/models';
 import { CartState } from '../shared/services';
 import { OrderFulfillmentService, OrderService } from './services';
 import { OrderForm } from './utils/order.form';
@@ -19,6 +21,7 @@ export class OrderFormComponent implements OnInit {
         private _cartState: CartState,
         private _orderService: OrderService,
         private _orderFulfillmentService: OrderFulfillmentService,
+        private _router: Router,
     ) { }
 
     public ngOnInit(): void {
@@ -29,10 +32,18 @@ export class OrderFormComponent implements OnInit {
     public submitOrder(): void {
         this._orderService.add({
             ...this.form.getRawValue(),
-            id: '673db885-736c-4531-a2b6-a58d088b46d7',
-            dishes: this._cartState.dishes,
+            dishes: this._cartState.dishes.map((d: Dish) => d.id),
         })
-            .subscribe();
+            .subscribe(
+                () => {
+                    this._cartState.clear();
+                    this._router.navigateByUrl('/dishes');
+                },
+                () => {
+                    this._cartState.clear();
+                    this._router.navigateByUrl('/dishes');
+                },
+            );
     }
 
     private _initializeForm(): void {

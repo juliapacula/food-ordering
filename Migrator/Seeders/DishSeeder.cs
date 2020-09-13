@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DatabaseStructure;
 using DatabaseStructure.EntitySets;
+using DatabaseStructure.Logic.Dishes.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Migrator.Seeders

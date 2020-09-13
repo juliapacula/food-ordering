@@ -10,7 +10,6 @@
 
         #region Commands
 
-        TestCommand,
         InitOrder,
         FinalizeOrder,
         CancelOrder,
@@ -20,10 +19,8 @@
 
         #region Replies
 
-        S_OK,
         FinalizingError,
         FinalizingSuccess,
-        AllDishes
 
         #endregion
     }

@@ -1,9 +1,8 @@
-using DatabaseStructure;
+using System;
 using DatabaseStructure.QueueUtils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,17 +26,15 @@ namespace Server
             services.AddControllersWithViews();
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/dist"; });
-            services.AddDbContext<DatabaseContext>(options =>
-                    options.UseNpgsql(Configuration.GetConnectionString("Postgres")),
-                ServiceLifetime.Scoped);
+            services.AddHttpClient<LogicHandlerClient>(c =>
+            {
+                c.BaseAddress = new Uri(Configuration.GetSection("LogicHandler")["Address"]);
+            });
 
             services.AddSingleton(new RabbitConfig("food_ordering"));
             services.AddSingleton<QueueClient>();
             services.AddHostedService(provider => provider.GetService<QueueClient>());
-            services.AddSignalR(o =>
-            {
-                o.EnableDetailedErrors = true;
-            });
+            services.AddSignalR(o => { o.EnableDetailedErrors = true; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +53,7 @@ namespace Server
 
             // app.UseHttpsRedirection();
             app.UseStaticFiles();
+
             if (!env.IsDevelopment())
             {
                 app.UseSpaStaticFiles();
@@ -65,9 +63,7 @@ namespace Server
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.MapControllers();
                 endpoints.MapHub<OrderFulfillmentHub>("/hub/order");
             });
 

@@ -8,38 +8,24 @@ namespace DatabaseStructure.QueueUtils
 {
     public abstract class Queue : BackgroundService
     {
-        #region Fields & Properties
+        protected readonly RabbitConfig RabbitConfig;
+        protected IConnection Connection;
+        protected IModel Channel;
 
-        protected readonly RabbitConfig rabbitConfig;
-        protected IConnection connection;
-        protected IModel channel;
-
-        public string QueueName => rabbitConfig.QueueName;
-
-        #endregion
-
-        #region Constructor
+        public string QueueName => RabbitConfig.QueueName;
 
         protected Queue(IConfiguration configuration, RabbitConfig rabbitConfig)
         {
-            this.rabbitConfig = rabbitConfig;
+            RabbitConfig = rabbitConfig;
             InitRabbitMq(configuration.GetSection("RabbitMq"));
         }
 
-        #endregion
-
-        #region Overrides
-
         public override void Dispose()
         {
-            channel?.Close();
-            connection?.Close();
+            Channel?.Close();
+            Connection?.Close();
             base.Dispose();
         }
-
-        #endregion
-
-        #region Methods
 
         private void InitRabbitMq(IConfiguration configuration)
         {
@@ -48,22 +34,20 @@ namespace DatabaseStructure.QueueUtils
                 UserName = configuration["Username"],
                 Password = configuration["Password"],
                 HostName = configuration["ServerAddress"],
-                VirtualHost = "/"
+                DispatchConsumersAsync = true,
             };
 
-            connection = factory.CreateConnection();
-            channel = connection.CreateModel();
+            Connection = factory.CreateConnection();
+            Channel = Connection.CreateModel();
 
-            channel.QueueDeclare(QueueName, exclusive: false, autoDelete: false);
-            channel.TxSelect();
-            channel.BasicQos(0, 1, false);
+            Channel.QueueDeclare(QueueName, exclusive: false, autoDelete: false);
+            // Channel.TxSelect();
+            Channel.BasicQos(0, 1, false);
         }
 
         protected MessageType GetMessageType(BasicDeliverEventArgs args)
         {
-            return args.BasicProperties.Headers.TryGetValue("Type", out var obj) ? (MessageType)obj : default;
+            return args.BasicProperties.Headers.TryGetValue("Type", out var obj) ? (MessageType) obj : default;
         }
-
-        #endregion
     }
 }

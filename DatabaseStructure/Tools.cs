@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Mail;
-using System.Text;
-using System.Text.RegularExpressions;
-using DatabaseStructure.EntitySets;
+﻿using DatabaseStructure.EntitySets;
+using DatabaseStructure.Logic.Orders.Models;
 using DatabaseStructure.Messages;
 
 namespace DatabaseStructure
@@ -14,8 +10,8 @@ namespace DatabaseStructure
         {
             var errors = string.Empty;
 
-            if (finalizeOrder.DishesAndQuantity == null || finalizeOrder.DishesAndQuantity.Count == 0)
-                errors += "Order is empty!";
+            // if (finalizeOrder.DishesAndQuantity == null || finalizeOrder.DishesAndQuantity.Count == 0)
+            //     errors += "Order is empty!";
 
             if (string.IsNullOrWhiteSpace(order.Street))
                 errors += "Address can't be empty!";

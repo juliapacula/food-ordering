@@ -11,21 +11,23 @@ services:
     environment:
       - ASPNET_ENVIRONMENT="Production"
     depends_on:
-      - backend
+      - logichandler
+    command: ["./wait-for-it.sh", "logichandler:80"]
     networks:
       - api
-  backend:
+  logichandler:
     build:
       context: .
-      dockerfile: ./Backend/Dockerfile
-    image: food-ordering-backend
+      dockerfile: ./LogicHandler/Dockerfile
+    image: food-ordering-logichandler
     ports:
-      - "5001:80"
+      - "8080:80"
     environment:
-      - DOTNET_ENVIRONMENT="Production"
+      - ASPNET_ENVIRONMENT="Production"
     depends_on:
       - rabbit
       - dbmigrator
+    command: ["./wait-for-it.sh", "rabbit:15672"]
     networks:
       - api
   dbmigrator:
@@ -43,19 +45,25 @@ services:
   rabbit:
     restart: on-failure
     image: rabbitmq:management
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
     volumes:
-    - rabbit-data:/var/lib/rabbitmq
+      - rabbit-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - api
   db:
     image: postgres
     restart: on-failure
     volumes:
-    - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: dbpassword
     ports:
-    - "5432:5432"
+      - "5432:5432"
     networks:
       - api
 

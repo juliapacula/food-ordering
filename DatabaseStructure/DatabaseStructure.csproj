@@ -8,7 +8,11 @@
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.7" />
       <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.7" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
-      <PackageReference Include="RabbitMQ.Client" Version="4.1.1" />
+      <PackageReference Include="RabbitMQ.Client" Version="6.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Logic\Dishes\Commands" />
     </ItemGroup>
 
 </Project>

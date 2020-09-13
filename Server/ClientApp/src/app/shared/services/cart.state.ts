@@ -26,4 +26,8 @@ export class CartState {
     public includes(dish: Dish): boolean {
         return this._dishes.some((d: Dish) => d.id === dish.id);
     }
+
+    public clear(): void {
+        this._dishes = [];
+    }
 }
