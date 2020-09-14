@@ -57,6 +57,7 @@ namespace Server.Hubs
         public static readonly string Registered = "Registered";
         public static readonly string Completed = "Completed";
         public static readonly string Failed = "Failed";
+        public static readonly string Error = "Error";
         public static readonly string Cancelled = "Cancelled";
     }
 }

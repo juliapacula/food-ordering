@@ -40,6 +40,10 @@ export class OrderFulfillmentService {
             this._handleFailedMessage(error);
         });
 
+        this._connection.on(OrderFulfillment.Error, (error: string) => {
+            this._handleErrorMessage(error);
+        });
+
         return this._connection.start();
     }
 
@@ -69,5 +73,9 @@ export class OrderFulfillmentService {
 
     private _handleFailedMessage(error: string): void {
         this._toastrService.error(`Twoje zamówienie nie mogło zostać przyjęte z powodu blędu: ${error}.`);
+    }
+
+    private _handleErrorMessage(error: string): void {
+        this._toastrService.error(`Błąd w trakcie przetwarzania zamówienia: ${error}.`);
     }
 }

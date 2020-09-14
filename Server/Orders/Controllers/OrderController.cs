@@ -28,11 +28,21 @@ namespace Server.Controllers
         [HttpPost]
         public void AddOrder([FromBody] OrderWebModel order)
         {
-            _queueClient.Publish(new FinalizeOrder()
+            try
             {
-                Order = order.ToModel(),
-                Dishes = order.Dishes,
-            });
+                _queueClient.Publish(new FinalizeOrder()
+                {
+                    Order = order.ToModel(),
+                    Dishes = order.Dishes,
+                });
+            }
+            catch
+            {
+                throw new HttpResponseException
+                {
+                    Value = "CONNECTION_ERROR"
+                };
+            }
         }
     }
 }

@@ -20,10 +20,10 @@ namespace LogicHandler.Services
 
         public QueueConsumer(
             IConfiguration configuration,
-            RabbitConfig _rabbitConfig,
+            RabbitConfig rabbitConfig,
             IServiceProvider serviceProvider
         )
-            : base(configuration, _rabbitConfig)
+            : base(configuration, rabbitConfig)
         {
             ServiceProvider = serviceProvider;
         }
@@ -47,26 +47,33 @@ namespace LogicHandler.Services
             switch (msgType)
             {
                 case MessageType.InitOrder:
-                    await HandleInitOrderAsync(Message.Parse<InitOrder>(args.Body.ToArray()));
+                    await HandleInitOrderAsync(args, Message.Parse<InitOrder>(args.Body.ToArray()));
                     break;
                 case MessageType.FinalizeOrder:
                     await HandleFinalizeOrderAsync(args, Message.Parse<FinalizeOrder>(args.Body.ToArray()));
                     break;
                 case MessageType.CancelOrder:
-                    await HandleCancelOrderAsync(Message.Parse<CancelOrder>(args.Body.ToArray()));
+                    await HandleCancelOrderAsync(args, Message.Parse<CancelOrder>(args.Body.ToArray()));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        private async Task HandleInitOrderAsync(InitOrder initOrder)
+        private async Task HandleInitOrderAsync(BasicDeliverEventArgs args, InitOrder initOrder)
         {
             using var scope = ServiceProvider.CreateScope();
             var command = scope.ServiceProvider.GetRequiredService<InitOrderCommand>();
             command.OrderId = initOrder.OrderId;
 
-            await command.HandleAsync();
+            try
+            {
+                await command.HandleAsync();
+            }
+            catch
+            {
+                PublishErrorMessage(initOrder.OrderId, args);
+            }
         }
 
         private async Task HandleFinalizeOrderAsync(BasicDeliverEventArgs args, FinalizeOrder finalizeOrder)
@@ -89,7 +96,17 @@ namespace LogicHandler.Services
                     CreateProperties(args.BasicProperties.CorrelationId, MessageType.RegisterOrder);
                 Channel.BasicPublish(string.Empty, args.BasicProperties.ReplyTo, registrationMessageProps,
                     registrationMessage.GetSerialized());
-                await command.HandleAsync();
+
+                try
+                {
+                    await command.HandleAsync();
+                }
+                catch
+                {
+                    PublishErrorMessage(finalizeOrder.Order.Id, args);
+                    return;
+                }
+
                 finalMessage = new FinalizingSuccess
                 {
                     OrderId = finalizeOrder.Order.Id,
@@ -98,7 +115,7 @@ namespace LogicHandler.Services
             }
             else
             {
-                finalMessage = new FinalizingError()
+                finalMessage = new FinalizingError
                 {
                     OrderId = finalizeOrder.Order.Id,
                     ErrorMessage = errors.Values.ToList().First(),
@@ -112,13 +129,20 @@ namespace LogicHandler.Services
                 finalMessage.GetSerialized());
         }
 
-        private async Task HandleCancelOrderAsync(CancelOrder cancelOrder)
+        private async Task HandleCancelOrderAsync(BasicDeliverEventArgs args, CancelOrder cancelOrder)
         {
             using var scope = ServiceProvider.CreateScope();
             var command = scope.ServiceProvider.GetRequiredService<CancelOrderCommand>();
             command.OrderId = cancelOrder.OrderId;
 
-            await command.HandleAsync();
+            try
+            {
+                await command.HandleAsync();
+            }
+            catch
+            {
+                PublishErrorMessage(cancelOrder.OrderId, args);
+            }
         }
 
         private IBasicProperties CreateProperties(string correlationId, MessageType type)
@@ -129,6 +153,17 @@ namespace LogicHandler.Services
             properties.CorrelationId = correlationId;
 
             return properties;
+        }
+
+        private void PublishErrorMessage(Guid orderId, BasicDeliverEventArgs args)
+        {
+            var message = new Error()
+            {
+                OrderId = orderId,
+                ErrorMessage = "Nie udało przetworzyć się zamówienia, problem z połączeniem"
+            };
+            var messageProps = CreateProperties(args.BasicProperties.CorrelationId, message.MessageType);
+            Channel.BasicPublish(string.Empty, args.BasicProperties.ReplyTo, messageProps, message.GetSerialized());
         }
     }
 }

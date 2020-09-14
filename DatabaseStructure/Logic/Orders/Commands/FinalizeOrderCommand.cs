@@ -48,19 +48,33 @@ namespace DatabaseStructure.Logic.Orders.Commands
         {
             var errors = new Dictionary<string, string>();
 
-            if (string.IsNullOrWhiteSpace(Order.FlatNumber))
+            if (string.IsNullOrWhiteSpace(Order.Street)
+                || string.IsNullOrWhiteSpace(Order.StreetNumber)
+                || string.IsNullOrWhiteSpace(Order.PostalCode)
+                || string.IsNullOrWhiteSpace(Order.Country)
+                || string.IsNullOrWhiteSpace(Order.Street))
             {
-                errors["FlatNumber"] = "Address can't be empty!";
+                errors["Address"] = "Adres musi zostać podany";
             }
 
             if (string.IsNullOrWhiteSpace(Order.FirstName))
             {
-                errors["FirstName"] = "Name can't be empty!";
+                errors["FirstName"] = "Nie podano imienia";
             }
 
             if (string.IsNullOrWhiteSpace(Order.LastName))
             {
-                errors["LastName"] = "Surname can't be empty!";
+                errors["LastName"] = "Nie podano nazwiska";
+            }
+            
+            if (string.IsNullOrWhiteSpace(Order.PhoneNumber) || string.IsNullOrWhiteSpace(Order.Email))
+            {
+                errors["Contact"] = "Nie danych kontaktowych";
+            }
+            
+            if (string.IsNullOrWhiteSpace(Order.Id.ToString()))
+            {
+                errors["Id"] = "ID zamówienia nie zostało podane";
             }
 
             return errors;

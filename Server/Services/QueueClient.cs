@@ -84,6 +84,12 @@ namespace Server.Services
                         OrderFulfillmentMessages.Completed,
                         success.DeliveryDateTime);
                     break;
+                case MessageType.Error:
+                    var defaultError = Message.Parse<Error>(args.Body.ToArray());
+                    _hubContext.Clients.Group(defaultError.OrderId.ToString()).SendAsync(
+                        OrderFulfillmentMessages.Error,
+                        defaultError.ErrorMessage);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

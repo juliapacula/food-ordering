@@ -7,6 +7,7 @@
         RegisterOrder,
         CancelOrder,
         FinalizingError,
+        Error,
         FinalizingSuccess,
     }
 }
